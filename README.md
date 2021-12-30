@@ -1,1 +1,1 @@
-This code implements modular arithmetic related to the RSA cryptography method. RSA is an asymmetric public-&-private key encryption system used for secure communication and authentication.
+This code implements modular arithmetic related to the R.S.A. cryptography method. RSA is an asymmetric public-&-private key encryption system used for secure communication and authentication.
