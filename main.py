@@ -4,11 +4,12 @@ import random
 import math
 
 def generate_primes():
-    """we only only generate some low primes for demo purposes. We are not concerned with hackers.
-    the low primes that will be chosen (p,q) from this list limit the number of distinguishable messages
-    (encoded as numbers) that can be sent in a block to the modulus (p*q) size. Our block size will only
-    be one letter so we don't need large primes for that reason either."""
+    """we only generate some small primes < 1000 for demo purposes. We are not concerned with hackers.
+    the two small primes that will be chosen (p,q) from the output list, "primes", limit the number
+    of distinguishable messages (encoded as numbers) that can be sent in a block to the modulus size
+    (p*q). our block size will only be one letter so we don't need large primes for that reason either."""
     primes = []
+    # Eratosthenes sieve would be more efficient
     for prime_check in range(2, 1000):
         prime = True
         for div_check in range(2, int(prime_check ** (1 / 2)+1)):
@@ -103,8 +104,8 @@ def transmission_and_reception():
     They will keep their private key d and share their public key (e,n).
     Alice will use Bob's public key to encode and send her message.
     Alice will also use her own private key to sign her name "A"
-    Bob will use his private key to decode the cypher text.
-    Bob will use Alice's public key to verify that Alice was the sender."""
+    Bob will use his private key to decode the ciphertext.
+    Bob will use Alice's public key to authenticate Alice was the sender."""
 
     message = "You're the antenna catching vibration. I'm the transmitter. Here's information!"
     print("[private] Alice's message:", message)
@@ -116,24 +117,24 @@ def transmission_and_reception():
     decoded_message = []
 
     for i, m in enumerate(m_list):
-        # Alice and Bob use unique keys for each block to avoid patterns in the cypher text
+        # Alice and Bob use unique keys for each block to avoid patterns in the ciphertext
         e_a, n_a, d_a = get_keys(primes)
         e_b, n_b, d_b = get_keys(primes)
 
-        # Alice encrypts the message into a cypher text c using Bob's public key (e and n)
+        # Alice encrypts the message into a ciphertext c using Bob's public key (e and n)
         # Alice does not have access to Bob's private key d_b
         # Alice also signs the message using her private key d_a
         c = encrypt_and_decrypt(m, e_b, n_b)
-        # a digital signature is actually not an encryption on an "Alice" or "A"
-        # it is another round of encryption applied to c
+        # a digital signature is actually not an encryption of "Alice" or "A"
+        # it is another round of encryption applied to c which encodes the message
         signature = encrypt_and_decrypt(convertToNumber("A"), d_a, n_a)
 
-        # Alice transmits the cypher text for Eve and everyone to see
-        # Eve tries to guess the message. She'll know if she can generate c
+        # Alice transmits the ciphertext for Eve and everyone to see
+        # Eve tries to guess the message. She'll know it if she can generate c using Bob's public key.
         print(f"[public] Alice's {i+1}th message & signature block to Bob is:", (c,signature))
 
         # Bob authenticates the message with Alice's public key
-        # And then Bob decrypts the cypher text block w/ his private key
+        # And then Bob decrypts the ciphertext block w/ his private key
         if convertFromNumber(encrypt_and_decrypt(signature, e_a, n_a))=="A":
             decrypted_number = encrypt_and_decrypt(c, d_b, n_b)
 
