@@ -1,4 +1,4 @@
-# RSA (in theory, not in practice) (ignoring key distribution)
+# RSA (in theory, not in practice)
 
 import random
 import math
@@ -71,10 +71,18 @@ def get_keys(primes):
 
 def encrypt_and_decrypt(m_or_c,e_or_d,n):
     """encryption and decryption involves exponentiation. we don't do the exponentiation all
-    at once due to exponent size. mod allows us to keep the running product less than the mod."""
-    result = 1
-    for step in range(e_or_d):
-        result = (result*m_or_c)%n
+    at once due to exponent size. mod allows us to keep the running product less than the mod.
+    we use the square-and-multiply method to compute (m**e)%n in log time."""
+    exp_binary = bin(e_or_d)[2:]  # drop the 0b prefix from this string
+    result = m_or_c
+    for bit in range(1,len(exp_binary)):
+        if exp_binary[bit] == "0":
+            result **= 2
+            result %= n
+        else:  # bit is "1"
+            result **= 2
+            result *= m_or_c
+            result %= n
     return result
 
 def convertToNumber(s):
@@ -92,7 +100,7 @@ def convert_message_to_numbers(message):
 def transmission_and_reception():
     """Alice has a private message to send to Bob.
     They will both generate public & private key pairs.
-    They will keep their private key d and share their public key publicly (e,n).
+    They will keep their private key d and share their public key (e,n).
     Alice will use Bob's public key to encode and send her message.
     Alice will also use her own private key to sign her name "A"
     Bob will use his private key to decode the cypher text.
@@ -116,6 +124,8 @@ def transmission_and_reception():
         # Alice does not have access to Bob's private key d_b
         # Alice also signs the message using her private key d_a
         c = encrypt_and_decrypt(m, e_b, n_b)
+        # a digital signature is actually not an encryption on an "Alice" or "A"
+        # it is another round of encryption applied to c
         signature = encrypt_and_decrypt(convertToNumber("A"), d_a, n_a)
 
         # Alice transmits the cypher text for Eve and everyone to see
@@ -124,7 +134,6 @@ def transmission_and_reception():
 
         # Bob authenticates the message with Alice's public key
         # And then Bob decrypts the cypher text block w/ his private key
-        print(encrypt_and_decrypt(signature, e_a, n_a))
         if convertFromNumber(encrypt_and_decrypt(signature, e_a, n_a))=="A":
             decrypted_number = encrypt_and_decrypt(c, d_b, n_b)
 
